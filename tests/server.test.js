@@ -29,24 +29,37 @@ describe('GET /search', () => {
   });
 
   it('should return movies if query and limit are valid', async () => {
-    searchMovies.mockResolvedValue([{ title: 'Batman Begins' }, { title: 'The Dark Knight' }]);
+    searchMovies.mockResolvedValue({ success: true, data: [{ title: 'Batman Begins' }, { title: 'The Dark Knight' }] });
     const response = await request(app).get('/search').query({ query: 'Batman', limit: 2 });
     expect(response.status).toBe(200);
     expect(response.body).toEqual([{ title: 'Batman Begins' }, { title: 'The Dark Knight' }]);
     expect(searchMovies).toHaveBeenCalledTimes(1);
   });
+
+  it('should return 500 if TMDB API fails', async () => {
+    searchMovies.mockResolvedValue({ success: false, error: 'Failed to fetch search results from TMDB' });
+    const response = await request(app).get('/search').query({ query: 'Batman', limit: 2 });
+    expect(response.status).toBe(500);
+    expect(response.body.error).toBe('Failed to fetch search results from TMDB');
+  });
 });
 
 describe('GET /merge', () => {
   it('should return merged and sorted list of top-rated and popular movies', async () => {
-    getTopRatedMovies.mockResolvedValue([
-      { title: 'The Shawshank Redemption' },
-      { title: 'The Godfather' },
-    ]);
-    getPopularMovies.mockResolvedValue([
-      { title: 'Avengers: Endgame' },
-      { title: 'Inception' },
-    ]);
+    getTopRatedMovies.mockResolvedValue({
+      success: true,
+      data: [
+        { title: 'The Shawshank Redemption' },
+        { title: 'The Godfather' },
+      ],
+    });
+    getPopularMovies.mockResolvedValue({
+      success: true,
+      data: [
+        { title: 'Avengers: Endgame' },
+        { title: 'Inception' },
+      ],
+    });
 
     const response = await request(app).get('/merge');
 
@@ -61,5 +74,37 @@ describe('GET /merge', () => {
 
     expect(getTopRatedMovies).toHaveBeenCalledTimes(1);
     expect(getPopularMovies).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return 500 if TMDB API fails for top-rated movies', async () => {
+    getTopRatedMovies.mockResolvedValue({ success: false, error: 'Failed to fetch top-rated movies from TMDB' });
+    getPopularMovies.mockResolvedValue({
+      success: true,
+      data: [
+        { title: 'Avengers: Endgame' },
+        { title: 'Inception' },
+      ],
+    });
+
+    const response = await request(app).get('/merge');
+
+    expect(response.status).toBe(500);
+    expect(response.body.error).toBe('Failed to fetch movies from TMDB');
+  });
+
+  it('should return 500 if TMDB API fails for popular movies', async () => {
+    getTopRatedMovies.mockResolvedValue({
+      success: true,
+      data: [
+        { title: 'The Shawshank Redemption' },
+        { title: 'The Godfather' },
+      ],
+    });
+    getPopularMovies.mockResolvedValue({ success: false, error: 'Failed to fetch popular movies from TMDB' });
+
+    const response = await request(app).get('/merge');
+
+    expect(response.status).toBe(500);
+    expect(response.body.error).toBe('Failed to fetch movies from TMDB');
   });
 });

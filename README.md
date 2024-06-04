@@ -2,6 +2,7 @@
 # TMDB Middleware Service
 
 TMDB Middleware Service is an Express application that acts as a middleware layer to handle requests to The Movie Database (TMDB) API.
+
 ## Installation
 
 To install and run this application locally, follow these steps:
@@ -16,6 +17,23 @@ To install and run this application locally, follow these steps:
     ```sh
     npm install
     ```
+
+## Running with Docker
+
+To build and run the application with Docker, use the following commands:
+
+1. Build the Docker image::
+    ```sh
+    docker-compose build
+    ```
+
+2. Start the Docker container:
+    ```sh
+    docker-compose up
+    ```
+
+The application will be accessible at http://localhost:3000.
+
 ## Environment Variables
 
 To run this project, you will need to add the following environment variables to your .env file
