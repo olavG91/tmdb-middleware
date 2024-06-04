@@ -21,16 +21,25 @@ app.get('/search', async (req, res) => {
         return res.status(400).json({ error: 'Limit must be a number' });
     }
 
-    const movies = await searchMovies(query, parseInt(limit));
-    res.json(movies);
+    const result = await searchMovies(query, parseInt(limit));
+    if (result.success) {
+        res.json(result.data);
+    } else {
+        res.status(500).json({ error: result.error });
+    }
 });
 
 app.get('/merge', async (req, res) => {
-    const topRatedMovies = await getTopRatedMovies();
-    const popularMovies = await getPopularMovies();
-    const mergedMovies = [...topRatedMovies, ...popularMovies];
-    mergedMovies.sort((a, b) => a.title.localeCompare(b.title));
-    res.json(mergedMovies);
+    const topRatedResult = await getTopRatedMovies();
+    const popularResult = await getPopularMovies();
+
+    if (topRatedResult.success && popularResult.success) {
+        const mergedMovies = [...topRatedResult.data, ...popularResult.data];
+        mergedMovies.sort((a, b) => a.title.localeCompare(b.title));
+        res.json(mergedMovies);
+    } else {
+        res.status(500).json({ error: 'Failed to fetch movies from TMDB' });
+    }
 });
 
 module.exports = app;
