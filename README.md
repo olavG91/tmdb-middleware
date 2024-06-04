@@ -80,3 +80,6 @@ To run tests, run the following command
   npm run test
 ```
 
+## License
+
+This project is licensed under the MIT License.
